@@ -29,6 +29,7 @@ const ledCBs = document.querySelectorAll('input.led');
 const divLeftBut = document.getElementById('leftBut');
 const divRightBut = document.getElementById('rightBut');
 const butConnect = document.getElementById('butConnect');
+const butVerify = document.getElementById('butVerify');
 
 const GRID_HAPPY = [1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0,1,1,1,0];
 const GRID_SAD =   [1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,1,1,0,1,0,0,0,1];
@@ -40,14 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
   butConnect.addEventListener('click', clickConnect);
 
   // CODELAB: Add feature detection here.
-    if ('serial' in navigator) {
+  if ('serial' in navigator) {
         
         const notSupported = document.getElementById('notSupported');
         notSupported.classList.add('hidden');
   }
 
 });
-
+// button verify
+butVerify.onclick= function(){
+  try {
+    writeToStream('DOVER');
+  } catch (error) {
+    alert('Debes conectar primero el dispositivo')
+  }
+  console.log('click verify')
+  
+}
 
 /**
  * @name connect
@@ -56,9 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function connect() {
   // CODELAB: Add code to request & open port here.
-    // - Request a port and open a connection.
+  // - Request a port and open a connection.
     port = await navigator.serial.requestPort();
-    // - Wait for the port to open.
+  // - Wait for the port to open.
     await port.open({ baudrate: 9600 });
 
   // CODELAB: Add code setup the output stream here.
@@ -75,7 +85,11 @@ async function connect() {
     inputStream = decoder.readable;
 
     reader = inputStream.getReader();
+
     readLoop();
+
+  
+
 
 }
 
@@ -125,9 +139,9 @@ async function clickConnect() {
 
   // CODELAB: Add connect code here.
     await connect();
-
+    
   // CODELAB: Reset the grid on connect here.
-
+ 
   // CODELAB: Initialize micro:bit buttons.
 
   toggleUIConnected(true);
@@ -144,10 +158,18 @@ async function readLoop() {
         const { value, done } = await reader.read();
         if (value) {
             log.textContent += value + '\n';
+            var subvalue= value.substr(0,2);
+            console.log(subvalue)
+            if(subvalue==='OK'){
+              console.log('igualito!!')
+            }
+            
+
         }
         if (done) {
             console.log('[readLoop] DONE', done);
             reader.releaseLock();
+            console.log(value)
             break;
         }
   }
@@ -272,3 +294,5 @@ function toggleUIConnected(connected) {
     cb.setAttribute('disabled', true);
   });
 }
+
+
